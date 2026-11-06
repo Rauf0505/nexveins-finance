@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+generated
+legacy
+data
+docs
+.git
+.env
+.env.local
+*.db
+*.db-shm
+*.db-wal
+Dockerfile
+.dockerignore
+package-lock.json.bak
