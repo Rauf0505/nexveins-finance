@@ -1,0 +1,19 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Local database files (SQLite legacy + scratch)
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Next.js / Prisma build output
+.next/
+out/
+prisma/dev.db*

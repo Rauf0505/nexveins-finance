@@ -1,0 +1,6 @@
+{
+  "name": "Nex Veins Finance",
+  "description": "Enterprise multi-tenant finance, double-entry accounting & financial operations platform for software houses and business applications.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

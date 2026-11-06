@@ -1,0 +1,1072 @@
+# NEX VEINS FINANCE
+## Enterprise Finance, Accounting & Financial Operations Platform
+
+**Project type:** New cloud-hosted web application  
+**Business scope:** Nex Veins internal finance + reusable financial modules for software-house clients  
+**Product category:** Multi-tenant, ERP-grade financial management platform  
+**Architecture preference:** Modular monolith with a shared accounting core and extensible domain modules
+
+---
+
+# 1. YOUR ROLE
+
+Act as a Principal Software Architect, ERP Financial Systems Architect, Senior Full-Stack Engineer, Database Architect, Security Engineer, QA Engineer, and Technical Project Lead.
+
+Build a complete, production-oriented financial management platform from scratch for Nex Veins.
+
+This must be a working software product, not a static dashboard, visual prototype, CRUD-only application, or collection of disconnected financial pages.
+
+You are responsible for the complete lifecycle:
+
+- Requirements analysis.
+- System architecture and technical specifications.
+- Database design and migrations.
+- Frontend and backend development.
+- Double-entry accounting engine.
+- Multi-tenant organization management.
+- Financial workflows and internal controls.
+- Client-facing finance modules.
+- Authentication and authorization.
+- Reporting and financial calculations.
+- Automated testing.
+- Deployment and operational documentation.
+
+**Do not stop after creating a plan, dashboard, or frontend.** Continue through implementation in manageable phases, validating each phase before proceeding.
+
+Maintain a persistent task checklist and document completed, tested, incomplete, and blocked work accurately.
+
+# 2. PRODUCT VISION
+
+Build a flexible financial platform that Nex Veins can use internally and reuse across its software-house projects.
+
+The platform must support two distinct usage modes.
+
+## Mode A — Nex Veins Internal Finance
+
+Manage the financial operations of Nex Veins, including:
+
+- Company revenue and operating expenses.
+- Clients, contracts, invoices, and collections.
+- Vendors, bills, and supplier payments.
+- Partner capital, loans, drawings, and distributions.
+- Project budgets, costs, and profitability.
+- Employee compensation and payroll accounting.
+- Office expenses, equipment, software subscriptions, and infrastructure.
+- Cash and bank accounts.
+- Tax records and configurable tax rules.
+- Budgets, forecasts, financial statements, and audit trails.
+
+## Mode B — Client Finance Modules
+
+Provide reusable financial capabilities for Nex Veins client projects, including POS, ERP, and custom business applications.
+
+Support capabilities such as:
+
+- Sales and purchase accounting.
+- Cash and bank management.
+- Customer receivables and supplier payables.
+- Invoices, receipts, and payments.
+- Expenses and operational costs.
+- Inventory-related accounting integrations.
+- Tax configuration.
+- Profit and loss reporting.
+- Branch and department reporting.
+- Financial permissions and approvals.
+
+A client application must be able to use the shared finance engine through well-defined APIs and domain interfaces.
+
+Not every client needs every module. Allow features to be enabled, configured, or omitted per organization and product integration.
+
+Do not tightly couple the accounting engine to a single POS, ERP, CRM, or project management application.
+
+# 3. NON-NEGOTIABLE ENGINEERING PRINCIPLES
+
+1. **Financial correctness:** Every posted accounting transaction must balance.
+2. **Data isolation:** One organization must never access another organization's financial data.
+3. **Configuration over hardcoding:** Business policies, categories, account mappings, numbering, and approval rules must be configurable.
+4. **Persistent state:** Real database records must power all dashboards, calculations, and reports.
+5. **Auditability:** Posted transactions and important administrative actions must have a traceable history.
+6. **Secure defaults:** Enforce permissions and organization boundaries on the server.
+7. **Atomic operations:** Related financial changes must commit together or roll back together.
+8. **Extensibility:** New transaction types and integrations should reuse the existing accounting core.
+9. **No fake completion:** A UI element is not complete until its backend behavior, validation, persistence, and tests work.
+10. **Incremental implementation:** Complete and validate coherent modules rather than generating the entire ERP in one unverified pass.
+
+Never sacrifice financial correctness or security to meet a visual or implementation deadline.
+
+# 4. TECHNOLOGY STACK
+
+Inspect the repository first. Since this is a new project, use the following stack unless a documented technical constraint justifies a change.
+
+## Frontend
+
+- React with TypeScript.
+- A suitable modern application framework, preferably Next.js if server rendering and routing are useful.
+- Tailwind CSS.
+- A consistent, accessible component library.
+- A typed API client.
+- Data visualization components for financial reports.
+- Form validation and predictable state management.
+
+## Backend
+
+- Python with FastAPI.
+- Pydantic for request and response validation.
+- SQLAlchemy 2.x.
+- Alembic database migrations.
+- PostgreSQL as the primary database.
+- `uv` for Python environment and dependency management.
+- Pytest for backend and integration testing.
+
+## Infrastructure
+
+- Docker and Docker Compose for local development.
+- Managed PostgreSQL or a properly operated PostgreSQL deployment.
+- Object storage for private attachments and generated documents.
+- A durable task queue or scheduler for recurring jobs and background processing.
+- CI/CD for linting, testing, migrations checks, and deployment.
+- Structured application logs and error monitoring.
+
+Choose a reliable cloud provider after assessing deployment requirements, cost, data residency, backup options, and operational capabilities.
+
+Do not introduce microservices, Kubernetes, or multiple databases without a demonstrated need.
+
+Use a **modular monolith** initially, with clear domain boundaries and API contracts. Preserve the ability to extract services later.
+
+# 5. MULTI-TENANT SAAS-READY ARCHITECTURE
+
+The platform must support multiple organizations securely, even if Nex Veins is the first organization using it.
+
+Distinguish between:
+
+- **Platform:** The shared software and its global configuration.
+- **Organization/Tenant:** A company or business using the platform.
+- **Legal entity:** An accounting entity with its own books and reporting obligations.
+- **Branch:** A location belonging to a legal entity.
+- **Department/cost center:** An organizational reporting dimension.
+- **Product integration:** A POS, ERP, or other application using financial APIs.
+- **User membership:** A user's authorized relationship with an organization.
+
+Do not assume that a tenant, legal entity, branch, and department are interchangeable.
+
+Implement organization-scoped data access and permission checks across all relevant endpoints and database queries.
+
+Use PostgreSQL constraints, tenant-aware query patterns, and row-level security where appropriate as defense in depth.
+
+Include automated cross-tenant security tests.
+
+Support a user's membership in multiple organizations, with explicitly selected active organization context and organization-specific roles.
+
+Never trust a tenant ID supplied by the client without validating the user's membership and access rights.
+
+Design subscription and plan entitlements as optional future platform capabilities. Do not allow billing or subscription checks to interfere with the integrity of accounting records.
+
+# 6. SHARED ACCOUNTING CORE
+
+The accounting engine is the foundation of every financial module.
+
+Implement genuine double-entry bookkeeping.
+
+## 6.1 Chart of Accounts
+
+Support:
+
+- Account codes and names.
+- Account types: assets, liabilities, equity, revenue, and expenses.
+- Parent and child accounts.
+- Hierarchical account trees.
+- Descriptions and account status.
+- Control accounts for receivables, payables, inventory, and other relevant modules.
+- Account restrictions and posting rules.
+- Department, branch, project, and cost-center dimensions.
+- Configurable account numbering.
+- Account-specific reporting mappings.
+- Opening balances through approved opening journals.
+
+Prevent inappropriate direct postings to system-controlled accounts when subledgers must control the balances.
+
+## 6.2 Journal Entries
+
+Implement:
+
+- Manual journals.
+- System-generated journals.
+- Accruals and adjusting entries.
+- Recurring journals.
+- Reversal journals.
+- Opening-balance journals.
+- Configurable journal numbering.
+- Source document references.
+- Transaction date and posting date.
+- Debit and credit lines.
+- Attachments and descriptions.
+- Draft, pending approval, approved, posted, reversed, and voided states as appropriate.
+- Posting permissions and approval requirements.
+- Period-lock validation.
+- Duplicate-posting protection.
+- Idempotency keys for relevant API operations.
+
+Every posted journal must satisfy:
+
+**Total debits = Total credits.**
+
+Use PostgreSQL `NUMERIC` types and Python `Decimal` for monetary arithmetic. Define currency precision and rounding policies explicitly.
+
+Do not use binary floating-point arithmetic for financial amounts.
+
+Enforce balanced posting through a transactional domain service, with database-level safeguards wherever practical. A database constraint or trigger may be needed to enforce cross-row invariants that ordinary constraints cannot express.
+
+## 6.3 Posted Transaction Integrity
+
+Once a journal is posted, its financial effect must not be silently modified or deleted.
+
+Corrections must use controlled reversal and replacement or adjustment entries.
+
+Preserve source references, posting timestamps, actor identities, and relevant audit information.
+
+Implement period closing, period locking, controlled reopening, and appropriate authorization checks.
+
+## 6.4 General Ledger
+
+Support:
+
+- Account transaction history.
+- Opening and closing balances.
+- Running balances.
+- Debit and credit totals.
+- Journal and source document references.
+- Date-range filtering.
+- Account and reporting-dimension filters.
+- Drill-down to source transactions.
+
+## 6.5 Trial Balance and Financial Statements
+
+Generate:
+
+- Trial Balance.
+- Profit and Loss Statement.
+- Balance Sheet.
+- Cash Flow Statement.
+- Statement of Changes in Equity.
+- General Ledger.
+- Journal Register.
+- Accounts Receivable Aging.
+- Accounts Payable Aging.
+- Budget-versus-Actual.
+- Project Profitability.
+
+Use explicit, documented accounting rules for each report.
+
+Implement accruals, opening balances, closing balances, non-cash adjustments, and cash-flow classifications correctly.
+
+Reports must reconcile to the ledger and provide drill-down to underlying entries.
+
+# 7. INTERNAL FINANCE MODULES
+
+## 7.1 Income and Receivables
+
+Implement clients, billing details, quotations, contracts, invoices, credit notes, receipts, and client statements.
+
+Support:
+
+- One-time invoices.
+- Recurring invoices.
+- Fixed-price projects.
+- Milestone-based invoices.
+- Hourly billing.
+- Monthly retainers.
+- Partial payments.
+- Multiple payment allocations.
+- Unallocated client receipts.
+- Refunds and credit notes.
+- Configurable discounts and tax treatment.
+- Payment terms and due dates.
+- Overdue invoice tracking.
+- Invoice PDF generation.
+- Custom invoice templates.
+
+Separate invoiced revenue, recognized revenue, and cash collected.
+
+Issuing an invoice and recording its payment must generate the appropriate accounting entries and update the receivables subledger consistently.
+
+## 7.2 Expenses and Payables
+
+Implement:
+
+- Vendors and supplier bills.
+- Direct cash expenses.
+- Employee expense claims.
+- Reimbursements.
+- Vendor advances.
+- Employee advances.
+- Recurring expenses.
+- Partial bill payments.
+- Credit notes and refunds.
+- Expense approvals.
+- Supporting attachments.
+- Duplicate bill detection.
+- Vendor statements and aging.
+- Department and project allocation.
+
+Differentiate unpaid liabilities from paid expenses. Paying an already recorded bill must settle the liability rather than recognize the expense a second time.
+
+## 7.3 Cash and Banking
+
+Support multiple bank accounts, cash accounts, and payment accounts.
+
+Include:
+
+- Cash receipts and payments.
+- Bank transfers.
+- Internal cash transfers.
+- Deposits and withdrawals.
+- Bank statement CSV imports.
+- Bank reconciliation.
+- Matching and exception handling.
+- Bank fees and interest.
+- Petty cash.
+- Opening balances.
+- Cash-flow projections.
+- Expected receipts and payments.
+
+Internal transfers must not be incorrectly recognized as income or expenses.
+
+Design integration interfaces for future bank feeds and payment providers, but do not represent an integration as functional until it has been implemented and tested.
+
+## 7.4 Software House Project Finance
+
+This is a priority module for Nex Veins.
+
+Each project should support:
+
+- Project code and client.
+- Contract value.
+- Billing model.
+- Contract start and end dates.
+- Budget and cost baseline.
+- Planned labor costs.
+- Time entries and configurable cost rates.
+- Vendor and subcontractor costs.
+- Cloud hosting, domains, and licenses.
+- Direct marketing or acquisition costs.
+- Milestone schedules.
+- Invoices and collections.
+- Actual expenses.
+- Committed costs.
+- Forecast costs to complete.
+- Recognized revenue.
+- Gross profit and margin.
+- Budget variance.
+- Project-level outstanding receivables.
+
+Support fixed-price, hourly, milestone, retainer, and recurring service contracts.
+
+Keep actual financial records separate from estimates and forecasts.
+
+Allow shared costs to be allocated through documented methods such as direct assignment, hours, percentages, or configured allocation drivers.
+
+Do not double-count project expenses in company-wide reports.
+
+## 7.5 Partner Capital and Equity
+
+Support:
+
+- Capital contributions.
+- Additional contributions.
+- Partner loans to the company.
+- Loans from the company to partners.
+- Partner drawings.
+- Profit allocations.
+- Distributions where legally applicable.
+- Partner-wise account statements.
+- Approval records.
+
+Keep equity, liabilities, distributions, and ordinary expenses distinct.
+
+Do not automatically equate ownership percentage with profit-sharing percentage. Configure the applicable agreement and accounting policy.
+
+## 7.6 Payroll Accounting
+
+Support employee records, salary structures, allowances, deductions, commissions, bonuses, advances, reimbursements, payroll approvals, and salary payment records.
+
+Generate appropriate payroll journals and liability settlements.
+
+Restrict payroll information to authorized users.
+
+Treat statutory payroll calculations as a separately validated capability rather than assuming that recording salary payments constitutes complete payroll compliance.
+
+## 7.7 Fixed Assets
+
+Implement:
+
+- Asset register.
+- Asset categories.
+- Purchase and capitalization.
+- Acquisition date and cost.
+- Useful life and residual value.
+- Depreciation methods and schedules.
+- Accumulated depreciation.
+- Asset transfers.
+- Impairment adjustments where supported.
+- Disposal and gain/loss calculation.
+- Asset-related journal entries.
+
+Make accounting methods configurable and document applicable policies.
+
+## 7.8 Budgets and Forecasting
+
+Support:
+
+- Annual and monthly budgets.
+- Account-level budgets.
+- Project and departmental budgets.
+- Multiple budget versions.
+- Actual-versus-budget reporting.
+- Variance thresholds.
+- Revenue and expense forecasts.
+- Cash-flow forecasts.
+- Scenario analysis.
+- Best-case, expected-case, and worst-case planning.
+
+Never overwrite actual accounting results with forecast data.
+
+## 7.9 Tax Configuration
+
+Build a configurable tax engine suitable for businesses operating in Pakistan, with jurisdiction-aware design.
+
+Support:
+
+- Tax categories and rates.
+- Effective dates and historical rule versions.
+- Inclusive and exclusive tax calculations.
+- Input and output tax accounts.
+- Withholding taxes where applicable.
+- Exempt and zero-rated classifications where relevant.
+- Tax invoices.
+- Tax liabilities and receivables.
+- Tax-period reports.
+- Exportable supporting schedules.
+- Integration interfaces for external tax services.
+
+Do not hardcode tax rates as permanent constants or claim compliance with FBR, IRIS, or an e-invoicing system without a verified implementation.
+
+Keep tax configuration separate from the core accounting engine. Require appropriate review for jurisdiction-specific rules.
+
+# 8. CLIENT FINANCE MODULE FRAMEWORK
+
+Create a reusable integration framework so future Nex Veins products can use the finance engine without duplicating accounting logic.
+
+## 8.1 Finance API
+
+Expose versioned APIs for supported operations, including:
+
+- Create or update permitted master records.
+- Create and issue invoices.
+- Record receipts and payments.
+- Record expenses and vendor bills.
+- Submit transactions for approval.
+- Post authorized transactions.
+- Retrieve account balances.
+- Retrieve transaction history.
+- Generate reports.
+- Retrieve posting and audit status.
+
+All endpoints must enforce organization membership, authorization, idempotency where applicable, validation, and audit logging.
+
+## 8.2 Source Application Integration
+
+Every integrated transaction should carry sufficient source metadata:
+
+- Source application.
+- Source entity type.
+- Source entity ID.
+- External reference.
+- Organization ID.
+- Idempotency key or event identifier.
+- Processing status.
+
+Define configurable mappings between source events and accounting accounts.
+
+Examples:
+
+- POS sale → sales, tax, and payment/tender accounts.
+- POS refund → reversal or refund-related entries.
+- Purchase receipt → inventory or expense and payable accounts, depending on the configured workflow.
+- Customer payment → cash/bank and receivable accounts.
+- Payroll run → salary expense and payroll liabilities.
+- Hosting expense → relevant expense account and payable/cash account.
+
+Use transactional outbox/inbox or an equivalent reliable integration mechanism where cross-system delivery is asynchronous.
+
+Implement retries, duplicate-event detection, reconciliation of failed imports, and integration logs.
+
+Do not allow source applications to bypass accounting controls by writing directly into ledger tables.
+
+## 8.3 Optional Client Modules
+
+Allow each organization to enable or disable modules such as:
+
+- Sales.
+- Purchases.
+- Inventory accounting integration.
+- Expenses.
+- Banking.
+- Payroll accounting.
+- Fixed assets.
+- Project accounting.
+- Budgeting.
+- Tax reporting.
+- Advanced analytics.
+
+Module availability must be configuration-driven, but module disabling must never erase existing financial records.
+
+# 9. MULTI-CURRENCY AND FINANCIAL PERIODS
+
+Support a configurable base currency and additional transaction currencies.
+
+Store:
+
+- Transaction amount.
+- Transaction currency.
+- Applicable exchange rate.
+- Base-currency amount.
+- Rate source and effective date where relevant.
+- Rounding details when necessary.
+
+Support realized and unrealized exchange differences where applicable, with documented posting rules.
+
+Do not overwrite historical exchange rates when current rates change.
+
+Support configurable fiscal years, open and closed accounting periods, comparative reporting, and period-end adjustments.
+
+# 10. CONFIGURABLE WORKFLOWS AND ADMINISTRATION
+
+Provide an administrative UI for configuring:
+
+- Chart of accounts.
+- Account numbering.
+- Income and expense categories.
+- Transaction sequences.
+- Invoice templates.
+- Departments and cost centers.
+- Branches and projects.
+- Financial dimensions.
+- Approval thresholds.
+- Approval sequences.
+- Posting mappings for supported integrations.
+- Tax categories and effective dates.
+- Fiscal years and periods.
+- Currency settings.
+- Report defaults.
+- Notification rules.
+- Feature flags.
+- Custom fields for appropriate entities.
+
+Use validated metadata and explicit schemas for custom configuration.
+
+Do not permit arbitrary configuration to disable balancing, authorization, tenant isolation, period locks, or audit requirements.
+
+# 11. USERS, ROLES, AND APPROVALS
+
+Provide role-based access control with granular permissions.
+
+Include starter roles for:
+
+- Platform Administrator.
+- Organization Administrator.
+- Finance Manager.
+- Accountant.
+- Accounts Receivable Officer.
+- Accounts Payable Officer.
+- Project Manager.
+- HR / Payroll Officer.
+- Department Manager.
+- Auditor.
+- Executive / Read-Only Viewer.
+
+Allow administrators to customize roles within safe boundaries.
+
+Support:
+
+- Create, read, update, and export permissions.
+- Approve, post, reverse, and reconcile permissions.
+- Organization and branch restrictions.
+- Project-level restrictions where required.
+- Configurable spending and posting thresholds.
+- Multi-step approval workflows.
+- Rejection and resubmission.
+- Approval comments.
+- Delegation with expiry.
+- Separation of duties.
+- User access reviews.
+
+Enforce all critical permissions on the backend. UI hiding is not a security control.
+
+Prevent self-approval where the applicable policy prohibits it.
+
+# 12. SECURITY AND AUDITABILITY
+
+Implement:
+
+- Secure authentication.
+- Password hashing and secure recovery.
+- Session expiry and revocation.
+- Appropriate MFA support.
+- Secure cookies or appropriately configured tokens.
+- CSRF protection where applicable.
+- Rate limiting.
+- Request validation.
+- Secure secret management.
+- Encryption in transit.
+- Encryption at rest through appropriate infrastructure controls.
+- Restricted attachment access.
+- Security event logging.
+- Audit trails for financial and administrative actions.
+- Database backup and recovery procedures.
+
+Never store passwords, API secrets, session tokens, or unnecessary sensitive data in audit records.
+
+Use an append-only audit event model with restricted access and suitable integrity protections.
+
+Capture actor, timestamp, organization, action, entity reference, and relevant before-and-after values.
+
+Protect financial data from unauthorized exports and cross-organization access.
+
+# 13. REPORTING AND DASHBOARDS
+
+Create a dynamic dashboard with configurable widgets.
+
+Include:
+
+- Cash and bank balances.
+- Revenue and expenses.
+- Net profit or loss.
+- Receivables and payables.
+- Overdue invoices.
+- Upcoming payments.
+- Monthly financial trends.
+- Project profitability.
+- Budget utilization.
+- Payroll liabilities.
+- Tax liabilities where configured.
+- Reconciliation exceptions.
+- Pending approvals.
+
+Provide reporting filters for dates, organizations, legal entities, branches, departments, clients, vendors, projects, accounts, and currencies as appropriate.
+
+Support:
+
+- Drill-down.
+- Comparative periods.
+- Saved filters.
+- CSV and XLSX exports.
+- PDF reports.
+- Printable invoices.
+- Report timestamps.
+- Reporting-basis labels.
+- Permission-aware exports.
+
+Every figure must be calculated from persistent records, and financial reports must reconcile to the accounting ledger according to their documented basis.
+
+# 14. USER EXPERIENCE
+
+Build a premium, professional finance interface suitable for daily business operations.
+
+Prioritize clarity, consistency, speed, accessibility, and accurate presentation of financial information.
+
+Include:
+
+- Responsive navigation.
+- Searchable tables.
+- Pagination and sorting.
+- Advanced filtering.
+- Saved views.
+- Clear transaction status indicators.
+- Forms with server-backed validation.
+- Confirmation for consequential actions.
+- Empty, loading, and error states.
+- Accessible keyboard navigation.
+- Light and dark themes.
+- Dashboard customization.
+- Useful charts and financial tables.
+
+Suggested navigation:
+
+1. Overview.
+2. Accounting.
+3. Sales & Receivables.
+4. Purchases & Payables.
+5. Expenses.
+6. Banking & Cash.
+7. Projects.
+8. Budgets & Forecasts.
+9. Payroll.
+10. Fixed Assets.
+11. Taxation.
+12. Reports.
+13. Approvals.
+14. Integrations.
+15. Audit Trail.
+16. Settings.
+
+Adapt navigation to organization configuration and permissions.
+
+Do not use mock buttons, placeholder actions, or fabricated financial values in production functionality.
+
+# 15. NOTIFICATIONS AND SCHEDULED OPERATIONS
+
+Implement configurable notifications for:
+
+- Upcoming and overdue invoices.
+- Upcoming vendor payments.
+- Low cash balances.
+- Budget overruns.
+- Pending approvals.
+- Failed integration events.
+- Unmatched bank transactions.
+- Closed-period posting attempts.
+- Failed scheduled jobs.
+
+Support recurring invoices and journals, scheduled reports, and reminder workflows.
+
+Use durable job processing, retry policies, execution logs, and idempotency.
+
+AI-based suggestions may help categorize expenses or identify anomalies, but must not autonomously post or alter financial records without explicitly authorized controls.
+
+# 16. DATABASE AND DOMAIN MODEL
+
+Design a normalized PostgreSQL schema with explicit foreign keys, unique constraints, indexes, tenant-aware access patterns, and database migrations.
+
+At minimum, model:
+
+- Organizations and legal entities.
+- Branches and departments.
+- Users, memberships, roles, and permissions.
+- Fiscal years and accounting periods.
+- Chart of accounts.
+- Journal entries and journal lines.
+- Clients and vendors.
+- Invoices and invoice lines.
+- Credit notes.
+- Payments and payment allocations.
+- Vendor bills and settlements.
+- Expenses and reimbursements.
+- Bank accounts and reconciliations.
+- Projects and cost allocations.
+- Budgets and forecasts.
+- Payroll records.
+- Fixed assets and depreciation schedules.
+- Tax configurations and tax transactions.
+- Currencies and exchange rates.
+- Approval workflows and approval history.
+- Source application integrations.
+- Integration events and idempotency records.
+- Attachments and document metadata.
+- Audit events.
+- System and organization settings.
+
+Use explicit relational structures for core accounting data rather than unvalidated JSON documents.
+
+Apply appropriate deletion rules. Posted financial records must not be deleted through ordinary CRUD endpoints.
+
+# 17. API DESIGN
+
+Create versioned REST APIs with:
+
+- Consistent request and response schemas.
+- Server-side validation.
+- Organization-aware authorization.
+- Pagination and filtering.
+- Structured error responses.
+- Idempotency support.
+- Transactional financial workflows.
+- Audit event generation.
+- OpenAPI documentation.
+- Appropriate rate limiting.
+- Integration authentication and revocation.
+
+Separate read models and reporting queries from financial command operations where useful.
+
+Prevent frontend code from independently calculating authoritative accounting balances.
+
+The backend is the source of truth for posting, balances, permissions, approvals, and report calculations.
+
+# 18. CLOUD DEPLOYMENT
+
+Prepare the application for secure cloud hosting.
+
+Implement:
+
+- Separate development, staging, and production environments.
+- Environment-based configuration.
+- Managed secrets.
+- Automated tests in CI.
+- Database migrations during controlled releases.
+- HTTPS.
+- Secure CORS configuration.
+- Private database access.
+- Restricted object storage.
+- Structured logs and monitoring.
+- Error reporting.
+- Health checks.
+- Scheduled backups.
+- Tested restoration procedures.
+- Deployment and rollback documentation.
+- Resource and database connection management.
+
+Do not commit real credentials or production data.
+
+Do not expose PostgreSQL directly to the public internet.
+
+Document availability assumptions, recovery objectives, backup retention, and deployment costs before production launch.
+
+# 19. TESTING AND ACCEPTANCE
+
+Create meaningful automated tests for business logic, API behavior, permissions, tenant isolation, and end-to-end workflows.
+
+Required test categories:
+
+- Journal balancing.
+- Posting and reversal.
+- Trial balance consistency.
+- Financial statement reconciliation.
+- Invoice issuance.
+- Partial and full payments.
+- Overpayments and unallocated receipts.
+- Credit notes and refunds.
+- Vendor bills and settlement.
+- Bank transfers and reconciliation.
+- Project cost allocation.
+- Budget-versus-actual.
+- Currency conversion and rounding.
+- Fixed-asset depreciation.
+- Period locking.
+- Approval restrictions.
+- Separation of duties.
+- Audit trail completeness.
+- Idempotency and duplicate events.
+- Organization isolation.
+- API authorization.
+- Backup restoration.
+
+Use an isolated test database and deterministic fixtures.
+
+Never run destructive tests against production.
+
+# 20. PHASED IMPLEMENTATION ROADMAP
+
+Implement the project in the following order. Each phase must have its own task checklist, migrations, tests, documentation, and acceptance criteria.
+
+## Phase 0 — Discovery and Specification
+
+- Establish repository structure.
+- Define the product scope.
+- Document business assumptions.
+- Create architecture and domain diagrams.
+- Define tenant and legal-entity boundaries.
+- Design the initial ERD.
+- Define accounting events and posting rules.
+- Produce an initial permissions matrix.
+- Document integration boundaries.
+- Create the implementation backlog.
+
+**Acceptance:** The architecture and accounting design are documented, critical ambiguities are identified, and the initial implementation plan is actionable.
+
+## Phase 1 — Platform Foundation
+
+- Initialize frontend and backend.
+- Configure PostgreSQL.
+- Set up `uv`, dependency management, and migrations.
+- Implement authentication and organization membership.
+- Establish organization isolation.
+- Implement initial RBAC.
+- Configure audit infrastructure.
+- Establish UI design system.
+- Add CI and test infrastructure.
+- Prepare local Docker development.
+
+**Acceptance:** Users can securely access authorized organizations, migrations run reproducibly, and tenant-isolation tests pass.
+
+## Phase 2 — Accounting Engine
+
+- Implement the chart of accounts.
+- Implement journals and journal lines.
+- Implement balanced posting.
+- Implement reversals and adjustments.
+- Add fiscal periods and period locks.
+- Implement general ledger.
+- Implement trial balance.
+- Generate core financial statements.
+- Add audit history for accounting events.
+
+**Acceptance:** Journals balance, posted entries cannot be silently altered, period locks are enforced, and reports reconcile to the ledger.
+
+Do not begin the main finance workflows until this phase passes its acceptance tests.
+
+## Phase 3 — Daily Financial Operations
+
+- Implement clients and vendors.
+- Implement invoices and credit notes.
+- Implement receipts and payment allocation.
+- Implement vendor bills and expenses.
+- Implement cash and bank accounts.
+- Implement cash transfers.
+- Implement bank reconciliation.
+- Connect each supported transaction workflow to the accounting engine.
+
+**Acceptance:** A complete sales, collection, expense, payment, and reconciliation workflow works end to end with correct accounting entries.
+
+## Phase 4 — Nex Veins Project Finance
+
+- Implement client contracts and billing models.
+- Add project budgets and cost baselines.
+- Add time entries and labor-cost configuration.
+- Add project expense allocation.
+- Add milestone billing and retainers.
+- Add project profitability.
+- Add actual-versus-budget reporting.
+- Add forecast cost to complete.
+
+**Acceptance:** Project financial reports reconcile with the company ledger and clearly distinguish actual, invoiced, recognized, collected, committed, and forecast amounts.
+
+## Phase 5 — Enterprise Controls and Reporting
+
+- Add approval workflow configuration.
+- Add separation-of-duties controls.
+- Add advanced RBAC.
+- Add enhanced financial reports.
+- Add saved filters and export functionality.
+- Add configurable dashboards.
+- Add audit review tools.
+- Add controlled period closing.
+
+**Acceptance:** Permissions, approval policies, exports, and reports are tested and work according to configuration.
+
+## Phase 6 — Advanced Finance
+
+- Add payroll accounting.
+- Add partner capital and drawings.
+- Add fixed assets and depreciation.
+- Add budgets and forecasting.
+- Add multi-currency accounting.
+- Add configurable taxation.
+- Add recurring transactions and notifications.
+
+**Acceptance:** Each module has documented posting rules, complete workflows, and automated accounting tests.
+
+## Phase 7 — Client Finance Integrations
+
+- Publish versioned finance APIs.
+- Define source-event contracts.
+- Implement configurable account mappings.
+- Add integration authentication.
+- Add idempotency and retry handling.
+- Add integration event logs.
+- Implement one representative POS or ERP integration.
+- Verify reconciliation between source transactions and financial postings.
+
+**Acceptance:** A source application can submit a supported financial event, receive a reliable processing result, and reconcile the resulting ledger entries without duplication.
+
+## Phase 8 — Production Readiness
+
+- Conduct security and tenant-isolation reviews.
+- Test realistic transaction volumes.
+- Validate database indexes and query performance.
+- Review accounting calculations.
+- Test complete backup restoration.
+- Configure monitoring and alerts.
+- Complete deployment and rollback procedures.
+- Write administrator and end-user documentation.
+- Produce a known-limitations report.
+
+**Acceptance:** Critical tests pass, production configuration is documented, recovery procedures are tested, and no known critical security or accounting defects remain unresolved.
+
+# 21. CODING AGENT WORKING PROTOCOL
+
+At the beginning:
+
+1. Inspect the repository.
+2. Read existing instructions and documentation.
+3. Establish the architecture.
+4. Create the backlog and task checklist.
+5. Identify dependencies and unresolved business decisions.
+6. Define acceptance criteria for the first phase.
+
+During implementation:
+
+- Complete one coherent module at a time.
+- Run tests after meaningful changes.
+- Review database migrations.
+- Preserve working functionality.
+- Avoid giant files and duplicated business logic.
+- Keep API schemas and frontend types aligned.
+- Update documentation.
+- Record blockers explicitly.
+- Maintain a progress log so work can resume across sessions.
+
+If execution limits prevent completing the entire project in one session, stop at a coherent checkpoint, document what works, identify remaining tasks, and provide the exact next implementation steps.
+
+Do not falsely claim that all phases have been completed.
+
+For non-critical choices, use sensible documented defaults. For accounting policies, tax treatment, partner agreements, and other consequential rules, require authorized configuration or clarification.
+
+# 22. REQUIRED DELIVERABLES
+
+Deliver:
+
+- Complete application source code.
+- Database schema and migration history.
+- Seeded demonstration configuration.
+- Accounting engine.
+- Frontend and backend implementations.
+- Organization and permission management.
+- Client finance integration API.
+- Automated tests.
+- API documentation.
+- Architecture diagrams and ERD.
+- Accounting posting-rule documentation.
+- Environment example files without secrets.
+- Local development instructions.
+- Cloud deployment instructions.
+- Backup and restoration guide.
+- User and administrator manuals.
+- Test results.
+- Known limitations and remaining work.
+- Final implementation status report.
+
+# 23. FIRST RELEASE ACCEPTANCE SCENARIO
+
+The first usable release must support the following complete scenario:
+
+1. Create a Nex Veins organization and configure its fiscal period.
+2. Configure the chart of accounts and base currency.
+3. Record approved opening balances.
+4. Create a client and a project.
+5. Create and issue a project invoice.
+6. Verify the generated journal entry.
+7. Record a partial payment.
+8. Verify the receivable and cash/bank balances.
+9. Record a vendor bill and approve it.
+10. Record the vendor payment.
+11. Verify the expense and payable balances.
+12. View the general ledger and trial balance.
+13. Generate the Profit and Loss Statement and Balance Sheet.
+14. Reconcile the financial reports with the journal entries.
+15. Export a report.
+16. Review the audit trail.
+17. Attempt an unauthorized action and confirm it is rejected.
+18. Create a second organization and verify that it cannot access the first organization's data.
+
+All relevant figures must reconcile, permissions must be enforced, and every operation must persist in the database.
+
+# 24. BEGIN NOW
+
+Start with Phase 0.
+
+Inspect the project repository, establish the architecture, define the financial domain model, document the accounting posting rules, and produce the initial implementation backlog.
+
+Then implement the platform incrementally.
+
+Do not deliver only a plan. After the plan is approved or the non-critical assumptions are documented, continue into the first implementation phase and verify the results.
+
+**The objective is a reliable financial platform that Nex Veins can use internally and reuse across client products—not merely an attractive finance dashboard.**
