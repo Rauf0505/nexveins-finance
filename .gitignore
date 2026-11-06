@@ -1,19 +1,43 @@
-node_modules/
-build/
-dist/
-coverage/
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
 .DS_Store
-*.log
+*.pem
+*.tsbuildinfo
+next-env.d.ts
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# environment files — the example file is tracked, real values are not
 .env*
 !.env.example
 
-# Local database files (SQLite legacy + scratch)
-data/
+# vercel
+.vercel
+
+# local databases: the SQLite engine retired with the legacy app
+/data
 *.db
 *.db-shm
 *.db-wal
 
-# Next.js / Prisma build output
-.next/
-out/
-prisma/dev.db*
+# legacy app retains its own lockfile; it is reference, not a build target
+/legacy/node_modules
+
+/src/generated/prisma
